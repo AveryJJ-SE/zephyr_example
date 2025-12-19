@@ -1,0 +1,59 @@
+/dts-v1/;
+
+#include <st/u5/stm32u575Xi.dtsi>
+#include <st/u5/stm32u575zitxq-pinctrl.dtsi>
+
+/ {
+    model = "smcu";
+    compatible "se,smcu"
+    
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+        zephyr,code-partition = &slot0_partition
+	};
+
+	aliases {
+		led0 = &green_led;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		green_led: led_0 {
+			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+/* ============================================
+ * CLOCK CONFIGURATION: 4 MHz → 160 MHz
+ * Enable HSE as source clock for the pll1 and 
+ * multiply the freq to 160 MHz. Set the rcc
+ * source clock to pll1.
+ * ============================================ */
+&clk_hse {
+    clock-frequency = <DT_FREQ_M(8)>;  // 8 MHz external crystal
+    status = "okay";
+};
+
+&pll1 {
+    div-m = <1>;   // Input: 8 MHz / 1 = 8 MHz
+    mul-n = <40>;  // VCO: 8 MHz * 40 = 320 MHz
+    div-p = <2>;   // Output: 320 MHz / 2 = 160 MHz
+    clocks = <&clk_hse>;
+    status = "okay";
+};
+
+&rcc {
+    clocks = <&pll1>;
+    clock-frequency = <DT_FREQ_M(160)>;
+    ahb-prescaler = <1>;
+    apb1-prescaler = <1>;
+    apb2-prescaler = <1>;
+    apb3-prescaler = <1>;
+    status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
